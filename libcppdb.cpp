@@ -1,4 +1,4 @@
-#include <libcppdb.hpp>
+#include <./libcppdb.hpp>
 
 char cppdb::get_column_type(short int column,struct db db){
     char byte;
