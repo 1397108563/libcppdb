@@ -6,16 +6,14 @@ char cppdb::get_column_type(short int column,struct db db){
     memcpy(&byte,(char *)db.db_mmap+16+position,1);
     bool byte1=byte&(1<<8-(column%4)*2-1);
     bool byte2=byte&(1<<8-(column%4+1)*2);
-    if(!byte1&&!byte2){
+    if(!byte1&&byte2){
         return 'c';
-    }else if(!byte1&&byte2){
-        return 's';
     }else if(byte1&&!byte2){
         return 'l';
     }else if(byte1&&byte2){
         return 'd';
     }else{
-        return 0;
+        return 'e';
     }
 }
 unsigned long cppdb::get_data_position(unsigned long row_id, short int column_position,struct db db){
@@ -62,18 +60,17 @@ void cppdb::open_db(struct db* db){//内存映射打开数据库
             if(type == 'l'||type == 'd'){
                 db->db_column_count++;
                 db->db_column_length[i]=8;
-            }else if(type == 'c'||type == 's'){
+            }else if(type == 'c'){
                 if(char_count>16){
                     std::cout << "Too many string/char column" << std::endl;
                     return;
                 }
                 short int length;
                 memcpy(&length,(char *)db->db_mmap+32+char_count*2,2);
-                if(length == 0){
-                    break;
-                }
                 db->db_column_length[i]=length;
                 db->db_column_count++;char_count++;
+            }else if(type == 'e'){
+                break;
             }
             db->db_column_type[i]=type;
         }
@@ -100,28 +97,11 @@ bool cppdb::write_header(struct db* db){//向新数据库写入头信息
         }
         if(db->db_column_type[i] == 'c'){//char类型以00(bit)表示
             if(new_byte){
-                char byte = 0x00;
-                memcpy((char *)db->db_mmap+16+i/4,&byte,1);
-            }else{
-                char byte = *(char *)((char *)db->db_mmap+16+(i-(i%4))/4);
-                byte &= ~(1<<8-(i%4)*2-1);
-                byte &= ~(1<<8-(i%4+1)*2);
-                memcpy((char *)db->db_mmap+16+(i-(i%4))/4,&byte,1);
-            }
-            if(j>=16){
-                std::cout << "Too many string/char column" << std::endl;
-                return false;
-            }
-            memcpy((char *)db->db_mmap+32+j*2,db->db_column_length+i,2);
-            j++;
-        }
-        else if(db->db_column_type[i] == 's'){//string类型以01(bit)表示
-            if(new_byte){
                 char byte = 0x40;
                 memcpy((char *)db->db_mmap+16+i/4,&byte,1);
             }else{
                 char byte = *(char *)((char *)db->db_mmap+16+(i-(i%4))/4);
-                byte |= (1<<8-(i%4)*2-1);
+                byte &= ~(1<<8-(i%4)*2-1);
                 byte &= ~(1<<8-(i%4+1)*2);
                 memcpy((char *)db->db_mmap+16+(i-(i%4))/4,&byte,1);
             }
@@ -283,7 +263,7 @@ bool cppdb::cppdb_delete(unsigned long ID,struct db* db){//删除数据库中指
 }
 
 unsigned long cppdb::cppdb_search(struct search search,struct db db){//获取数据库中指定数据的位置
-    if(search.search_data==0){
+    if(search.search_data==NULL){
         std::cout << "Data is 0" << std::endl;
         return 0;
     }
@@ -302,17 +282,6 @@ unsigned long cppdb::cppdb_search(struct search search,struct db db){//获取数
             if(search.search_type==cppdb::get_column_type(i,db)&&search.search_type=='c'){
                 char data[db.db_column_length[i]];
                 char search_data[search.search_data_length];
-                memcpy(&data,(char *)db.db_mmap+position,db.db_column_length[i]);
-                memcpy(&search_data,search.search_data,search.search_data_length);
-                if(data==search_data){
-                    return position;
-                }else{
-                    position+=db.db_column_length[i];
-                }
-            }
-            if(search.search_type==cppdb::get_column_type(i,db)&&search.search_type=='s'){
-                std::string data;
-                std::string search_data;
                 memcpy(&data,(char *)db.db_mmap+position,db.db_column_length[i]);
                 memcpy(&search_data,search.search_data,search.search_data_length);
                 if(data==search_data){
@@ -372,15 +341,6 @@ unsigned long cppdb::cppdb_search(struct search search,struct db db){//获取数
                     data[j]='\0';
                 }
                 if(c_int==db.db_column_length[search.search_number-1]){
-                    return position+i*db.row_size;
-                }
-            }
-            if(db.db_column_type[search.search_number-1]=='s'){
-                std::string data;
-                std::string search_data;
-                memcpy(&data,(char *)db.db_mmap+position+i*db.row_size,db.db_column_length[search.search_number-1]);
-                memcpy(&search_data,search.search_data,search.search_data_length);
-                if(data==search_data){
                     return position+i*db.row_size;
                 }
             }

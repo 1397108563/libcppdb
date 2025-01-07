@@ -13,7 +13,7 @@ struct search{//搜索结构体
       mode 2: 搜索一列数据
       mode 3: 全部搜索*/
     short int search_mode=0;
-    /*c,s,l,d,如果是按列搜索或全部搜索则无需指定*/
+    /*c,l,d,如果是按列搜索或全部搜索则无需指定*/
     char search_type;
     /*搜索的行号或列号,如果是模式3可忽略*/
     unsigned long search_number=0;
