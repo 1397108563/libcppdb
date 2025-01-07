@@ -5,6 +5,8 @@
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
+#ifndef _LIBCPPDB_
+#define _LIBCPPDB_
 
 struct search{//搜索结构体
     /*mode 1: 搜索一行数据
@@ -49,3 +51,5 @@ class cppdb{
         bool write_header(struct db*);
         char get_column_type(short int position,struct db);
 };
+
+#endif

@@ -1,4 +1,4 @@
-#include <./libcppdb.hpp>
+#include <libcppdb.hpp>
 
 char cppdb::get_column_type(short int column,struct db db){
     char byte;
@@ -367,6 +367,9 @@ unsigned long cppdb::cppdb_search(struct search search,struct db db){//获取数
                     }else{
                         c_int++;
                     }
+                }
+                for(int j=0; j<db.db_column_length[search.search_number-1]; j++){
+                    data[j]='\0';
                 }
                 if(c_int==db.db_column_length[search.search_number-1]){
                     return position+i*db.row_size;
