@@ -226,11 +226,11 @@ bool cppdb::cppdb_write(const void *data, unsigned long position, unsigned long 
         std::cout << "Data is 0" << std::endl;
         return false;
     }
-    if(position>db.db_size-8){
+    if(position>db.db_size-1){
         std::cout << "Position out of range" << std::endl;
         return false;
     }
-    if(length>db.row_size-8){
+    if(length>db.row_size-1){
         std::cout << "Length out of range" << std::endl;
         return false;
     }
