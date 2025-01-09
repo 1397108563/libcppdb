@@ -214,7 +214,7 @@ void cppdb::cppdb_read(void *data,unsigned long position,unsigned long length,st
         std::cout << "Database not opened" << std::endl;
         return;
     }
-    if(position>db.db_size-8){
+    if(position>db.db_size-1){
         std::cout << "Position out of range" << std::endl;
         return;
     }
