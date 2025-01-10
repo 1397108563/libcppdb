@@ -95,14 +95,14 @@ bool cppdb::write_header(struct db* db){//向新数据库写入头信息
         if(i%4 == 0){
             new_byte = true;
         }
-        if(db->db_column_type[i] == 'c'){//char类型以00(bit)表示
+        if(db->db_column_type[i] == 'c'){//char类型以01(bit)表示
             if(new_byte){
                 char byte = 0x40;
                 memcpy((char *)db->db_mmap+16+i/4,&byte,1);
             }else{
                 char byte = *(char *)((char *)db->db_mmap+16+(i-(i%4))/4);
                 byte &= ~(1<<8-(i%4)*2-1);
-                byte &= ~(1<<8-(i%4+1)*2);
+                byte |= (1<<8-(i%4+1)*2);
                 memcpy((char *)db->db_mmap+16+(i-(i%4))/4,&byte,1);
             }
             if(j>=16){
@@ -118,8 +118,8 @@ bool cppdb::write_header(struct db* db){//向新数据库写入头信息
                 memcpy((char *)db->db_mmap+16+i/4,&byte,1);
             }else{
                 char byte = *(char *)((char *)db->db_mmap+16+(i-(i%4))/4);
-                byte &= ~(1<<8-(i%4)*2-1);
-                byte |= (1<<8-(i%4+1)*2);
+                byte |= (1<<8-(i%4)*2-1);
+                byte &= ~(1<<8-(i%4+1)*2);
                 memcpy((char *)db->db_mmap+16+(i-(i%4))/4,&byte,1);
             }
         }
