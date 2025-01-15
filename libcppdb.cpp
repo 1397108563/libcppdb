@@ -251,13 +251,14 @@ bool cppdb::cppdb_delete(unsigned long ID,struct db* db){//删除数据库中指
     }
     memmove((char *)db->db_mmap+64+(ID-1)*db->row_size,(char *)db->db_mmap+64+ID*db->row_size,db->db_size-64-ID*db->row_size);
     munmap(db->db_mmap,db->db_size);
-    void *db_mmap = mmap(db->db_mmap,db->db_size-db->row_size,PROT_READ|PROT_WRITE,MAP_SHARED,db->fd,0);
+    ftruncate(db->fd,db->db_size-db->row_size);
+    void *db_mmap = mmap(NULL,db->db_size-db->row_size,PROT_READ|PROT_WRITE,MAP_SHARED,db->fd,0);
     if(db_mmap == MAP_FAILED){
         db->db_mmap=NULL;
         return false;
     }
     db->db_mmap=db_mmap;
-    db->db_size=db->row_size-db->row_size;
+    db->db_size-=db->row_size;
     db->latest_row_id--;
     return true;
 }
